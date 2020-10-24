@@ -680,6 +680,41 @@ func TestIssueService_Search_WithoutPaging(t *testing.T) {
 	}
 }
 
+func TestIssueService_Search_MetadataOnly(t *testing.T) {
+	setup()
+	defer teardown()
+	testMux.HandleFunc("/rest/api/2/search", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
+		testRequestURL(t, r, "/rest/api/2/search")
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, `{"expand": "schema,names","startAt": 0,"maxResults": 0,"total": 6,"issues": []}`)
+	})
+
+	opts := SearchOptions{
+		MaxResults:   7,
+		MetadataOnly: true,
+	}
+
+	issues, resp, err := testClient.Issue.Search("something", &opts)
+
+	if resp == nil {
+		t.Errorf("Response given: %+v", resp)
+	}
+	if err != nil {
+		t.Errorf("Error given: %s", err)
+	}
+
+	if len(issues) != 0 {
+		t.Errorf("number of issues should be 0, got %v", len(issues))
+	}
+	if resp.MaxResults != 0 {
+		t.Errorf("resp.MaxResults should be 0, got %v", resp.MaxResults)
+	}
+	if resp.Total != 6 {
+		t.Errorf("resp.Total should be 6, got %v", resp.Total)
+	}
+}
+
 func TestIssueService_SearchPages(t *testing.T) {
 	setup()
 	defer teardown()
