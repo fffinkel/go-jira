@@ -507,6 +507,9 @@ type SearchOptions struct {
 	Fields []string
 	// ValidateQuery: The validateQuery param offers control over whether to validate and how strictly to treat the validation. Default: strict.
 	ValidateQuery string `url:"validateQuery,omitempty"`
+	// MetadataOnly: Set MetadataOnly to true to get only metadata back
+	// (maxResults=0). This field overrides MaxResults.
+	MetadataOnly bool `url:"-"`
 }
 
 // searchResult is only a small wrapper around the Search (with JQL) method
@@ -1046,7 +1049,9 @@ func (s *IssueService) SearchWithContext(ctx context.Context, jql string, option
 		if options.StartAt != 0 {
 			uv.Add("startAt", strconv.Itoa(options.StartAt))
 		}
-		if options.MaxResults != 0 {
+		if options.MetadataOnly {
+			uv.Add("maxResults", "0")
+		} else if options.MaxResults != 0 {
 			uv.Add("maxResults", strconv.Itoa(options.MaxResults))
 		}
 		if options.Expand != "" {
